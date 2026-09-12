@@ -9,7 +9,7 @@ export default function Home() {
   const [name, setNm] = useState(getName())
   return (
     <div className="min-h-full flex flex-col">
-      <Header title={<span className="text-accent">Fieldline</span>} />
+      <Header title={<span className="text-accent">Discovered</span>} />
       <div className="p-5 flex flex-col gap-5 max-w-md w-full mx-auto">
         <div>
           <h1 className="text-3xl font-bold tracking-tight leading-tight">Know where your team has been.</h1>

@@ -1,7 +1,6 @@
 import type { VercelRequest, VercelResponse } from '@vercel/node'
 import OpenAI, { toFile } from 'openai'
-import Anthropic from '@anthropic-ai/sdk'
-import { admin, mediaUrl } from './_lib.js'
+import { admin, mediaUrl, llm, llmProvider } from './_lib.js'
 
 const TAG_PROMPT = `You label short field voice notes from search-and-rescue, wildland fire or hunting teams.
 Return ONLY JSON: {"category":"clue|hazard|sighting|obstacle|rendezvous|help|status|other","priority":"low|normal|high|urgent","tags":["..."],"summary":"<=12 words"}.
@@ -32,14 +31,11 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     const text = tr.text.trim()
 
     let suggested = null
-    if (process.env.ANTHROPIC_API_KEY && text) {
-      try {
-        const claude = new Anthropic()
-        const msg = await claude.messages.create({ model: 'claude-haiku-4-5-20251001', max_tokens: 300, system: TAG_PROMPT, messages: [{ role: 'user', content: `Note: "${text}"` }] })
-        const raw = msg.content.map(c => (c.type === 'text' ? c.text : '')).join('')
-        suggested = JSON.parse(raw.slice(raw.indexOf('{'), raw.lastIndexOf('}') + 1))
-      } catch { suggested = null }
+    if (llmProvider() && text) {
+      const raw = await llm(TAG_PROMPT, `Note: "${text}"`, 300)
+      if (raw) { try { suggested = JSON.parse(raw.slice(raw.indexOf('{'), raw.lastIndexOf('}') + 1)) } catch { suggested = null } }
     }
+
     await db.from('transcripts').insert({ voice_note_id: id, text, confidence, segments: segs, suggested_tags: suggested })
     await db.from('voice_notes').update({ status: 'done' }).eq('id', id)
     return res.status(200).json({ ok: true, text, confidence, suggested })

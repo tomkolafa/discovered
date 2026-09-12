@@ -1,4 +1,4 @@
--- Fieldline demo schema. RLS is intentionally permissive (demo-only, no auth).
+-- Discovered demo schema. RLS is intentionally permissive (demo-only, no auth).
 create extension if not exists postgis;
 
 create table sessions (

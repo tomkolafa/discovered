@@ -12,7 +12,7 @@ class FL extends Dexie {
   markers!: Table<Marker & { synced: number }, string>
   notes!: Table<VoiceNote & { synced: number }, string>
   constructor() {
-    super('fieldline')
+    super('discovered')
     this.version(1).stores({
       outbox: '++id, kind, created',
       blobs: 'path',

@@ -14,7 +14,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
   else {
     try {
       const r = await new Resend(process.env.RESEND_API_KEY).emails.send({
-        from: process.env.RECAP_FROM || 'Fieldline <onboarding@resend.dev>', to, subject: subject || 'Session recap',
+        from: process.env.RECAP_FROM || 'Discovered <onboarding@resend.dev>', to, subject: subject || 'Session recap',
         text: `${text}\n\nFull report: ${reportUrl}\n\nYou received this because you opted in to recaps. This is a non-critical summary, not an operational instruction.`,
       })
       if (r.error) { status = 'failed'; detail = r.error }

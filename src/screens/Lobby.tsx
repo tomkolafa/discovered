@@ -16,7 +16,7 @@ export default function Lobby() {
   const [busy, setBusy] = useState<string | null>(null)
   const [err, setErr] = useState<string | null>(null)
   const [optin, setOptin] = useState(false)
-  const [email, setEmail] = useState('')
+  const [email, setEmail] = useState(import.meta.env.VITE_DEFAULT_RECAP_EMAIL ?? '')
   const url = `${location.origin}/s/${code}`
   const me = d.session ? memberIdFor(d.session.id) : null
   const myRow = d.members.find(m => m.id === me)
@@ -30,7 +30,7 @@ export default function Lobby() {
     void supabase.from('members').insert({ id, session_id: d.session.id, name: getName(), role: 'field', colour: MEMBER_COLOURS[d.members.length % MEMBER_COLOURS.length] }).then(({ error }) => { if (!error) { setMemberIdFor(d.session!.id, id); void d.refresh() } else setErr(error.message) })
   }, [d.session, me, d.members.length]) // eslint-disable-line react-hooks/exhaustive-deps
 
-  useEffect(() => { if (myRow) { setOptin(myRow.recap_optin); setEmail(myRow.recap_email ?? '') } }, [myRow?.id]) // eslint-disable-line react-hooks/exhaustive-deps
+  useEffect(() => { if (myRow) { setOptin(myRow.recap_optin); setEmail(myRow.recap_email ?? import.meta.env.VITE_DEFAULT_RECAP_EMAIL ?? '') } }, [myRow?.id]) // eslint-disable-line react-hooks/exhaustive-deps
 
   if (d.error) return <div className="p-6"><Header title="Session" back="/" /><p className="text-crit mt-4">{d.error}</p></div>
   if (!d.session) return <div className="p-6 text-muted">Loading…</div>
@@ -50,7 +50,7 @@ export default function Lobby() {
           <div className="flex-1 min-w-0">
             <div className="text-xs uppercase tracking-wider text-muted font-semibold">Join code</div>
             <div className="num text-4xl font-bold tracking-[0.2em]">{s.code}</div>
-            <button className="btn mt-2 w-full text-sm" onClick={() => { if (navigator.share) void navigator.share({ title: `Join ${s.name}`, text: `Join my Fieldline session with code ${s.code}`, url }); else void navigator.clipboard.writeText(url) }}>Share invite</button>
+            <button className="btn mt-2 w-full text-sm" onClick={() => { if (navigator.share) void navigator.share({ title: `Join ${s.name}`, text: `Join my Discovered session with code ${s.code}`, url }); else void navigator.clipboard.writeText(url) }}>Share invite</button>
           </div>
         </div>
 

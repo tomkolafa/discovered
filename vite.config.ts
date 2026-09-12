@@ -11,8 +11,8 @@ export default defineConfig({
       registerType: 'autoUpdate',
       includeAssets: ['icon.svg'],
       manifest: {
-        name: 'Fieldline',
-        short_name: 'Fieldline',
+        name: 'Discovered',
+        short_name: 'Discovered',
         description: 'Team movement and coverage for SAR, wildland fire and hunting groups',
         theme_color: '#0B0F14',
         background_color: '#0B0F14',
