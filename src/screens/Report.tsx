@@ -9,6 +9,7 @@ import { supabase } from '../lib/supabase'
 import { memberIdFor } from '../lib/identity'
 import { MARKER_META, VERTICAL_META, type TrackPoint } from '../lib/types'
 import { NoteCard } from './Notes'
+import { PlayIcon, PauseIcon } from '../components/icons'
 
 export default function Report() {
   const { code } = useParams()
@@ -79,6 +80,16 @@ export default function Report() {
     <div className="min-h-full">
       <Header title={<span>Report · {s.name}</span>} back={`/s/${code}`} />
       <div className="max-w-3xl mx-auto p-4 flex flex-col gap-4 safe-bottom">
+        <div className="card overflow-hidden">
+          <div className="relative h-[52vh]"><MapView layers={layers} fitTo={fit} /></div>
+          <div className="p-3 flex items-center gap-3">
+            <button className="btn w-12 h-12 p-0 rounded-full btn-primary" onClick={() => { if (t >= 1) setT(0); setPlaying(p => !p) }}>{playing ? <PauseIcon /> : <PlayIcon />}</button>
+            <input type="range" min={0} max={1} step={0.002} value={t} onChange={e => { setPlaying(false); setT(+e.target.value) }} className="flex-1 accent-[var(--accent)]" />
+            <span className="num text-xs text-muted w-16 text-right">{t0 ? fmtTime(new Date(tCut).toISOString()) : '–'}</span>
+          </div>
+          <div className="px-3 pb-3 grid grid-cols-3 gap-2 text-xs"><span className="pill justify-center">Corridor {Math.round(covAt?.coveredPct ?? 0)}%</span><span className="pill justify-center">Overlap {Math.round(covAt?.overlapPct ?? 0)}%</span><span className="pill justify-center">Gap {Math.round(100 - (covAt?.coveredPct ?? 0))}%</span></div>
+        </div>
+
         <div className="card p-5 flex flex-col sm:flex-row gap-5 items-center">
           <Ring value={cov.coveredPct} label="Corridor coverage" sub={`of ${(cov.boundaryM2 / 10000).toFixed(1)} ha assigned`} />
           <Ring value={qAll} label="Data quality" sub="accuracy · gaps · dropped" colour={qAll >= 75 ? 'var(--good)' : qAll >= 50 ? 'var(--warn)' : 'var(--crit)'} />
@@ -94,16 +105,6 @@ export default function Report() {
           <div className="font-semibold mb-1 flex items-center">Summary<span className="flex-1" /><button className="pill" onClick={() => setGenKey(k => k + 1)}>Regenerate</button></div>
           <p className="text-sm leading-relaxed text-text/90">{summary ?? 'Writing summary…'}</p>
           <p className="text-xs text-muted mt-2">Corridor = GPS track buffered by the assumed {s.sweep_width_m} m sweep width, clipped to the boundary. It is a model of where people walked, not evidence that terrain was searched. Completion is a human decision.</p>
-        </div>
-
-        <div className="card overflow-hidden">
-          <div className="relative h-[52vh]"><MapView layers={layers} fitTo={fit} /></div>
-          <div className="p-3 flex items-center gap-3">
-            <button className="btn w-12 h-12 p-0 rounded-full btn-primary" onClick={() => { if (t >= 1) setT(0); setPlaying(p => !p) }}>{playing ? '❚❚' : '▶'}</button>
-            <input type="range" min={0} max={1} step={0.002} value={t} onChange={e => { setPlaying(false); setT(+e.target.value) }} className="flex-1 accent-[var(--accent)]" />
-            <span className="num text-xs text-muted w-16 text-right">{t0 ? fmtTime(new Date(tCut).toISOString()) : '–'}</span>
-          </div>
-          <div className="px-3 pb-3 grid grid-cols-3 gap-2 text-xs"><span className="pill justify-center">Corridor {Math.round(covAt?.coveredPct ?? 0)}%</span><span className="pill justify-center">Overlap {Math.round(covAt?.overlapPct ?? 0)}%</span><span className="pill justify-center">Gap {Math.round(100 - (covAt?.coveredPct ?? 0))}%</span></div>
         </div>
 
         <div className="card p-4">

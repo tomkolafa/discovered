@@ -1,17 +1,19 @@
 import { useEffect, useState, type ReactNode } from 'react'
 import { Link } from 'react-router-dom'
 import { applyTheme, getTheme } from '../lib/identity'
+import { SunIcon, MoonIcon, ChevronLeftIcon } from './icons'
 
 export function ThemeToggle() {
   const [t, setT] = useState(getTheme())
-  return <button className="pill" onClick={() => { const n = t === 'dark' ? 'light' : 'dark'; applyTheme(n); setT(n); window.dispatchEvent(new Event('fl-theme')) }} aria-label="Toggle theme">{t === 'dark' ? '☾ Dark' : '☀ Light'}</button>
+  const next = t === 'dark' ? 'light' : 'dark'
+  return <button className="icon-btn" onClick={() => { applyTheme(next); setT(next); window.dispatchEvent(new Event('fl-theme')) }} aria-label={`Switch to ${next} mode`} title={`Switch to ${next} mode`}>{t === 'dark' ? <SunIcon /> : <MoonIcon />}</button>
 }
 
 export function Header({ title, back, right }: { title: ReactNode; back?: string; right?: ReactNode }) {
   return (
     <header className="safe-top sticky top-0 z-20 bg-bg/85 backdrop-blur border-b border-line">
       <div className="flex items-center gap-3 px-4 h-14">
-        {back && <Link to={back} className="text-muted text-xl leading-none" aria-label="Back">‹</Link>}
+        {back && <Link to={back} className="icon-btn -ml-2 text-muted" aria-label="Back"><ChevronLeftIcon /></Link>}
         <div className="font-semibold tracking-tight truncate flex-1">{title}</div>
         {right}<ThemeToggle />
       </div>
@@ -41,7 +43,7 @@ export function Ring({ value, label, sub, colour = 'var(--accent)', size = 120 }
 export function Stat({ value, unit, label, tone }: { value: ReactNode; unit?: string; label: string; tone?: 'good' | 'warn' | 'crit' }) {
   const col = tone === 'good' ? 'text-good' : tone === 'warn' ? 'text-warn' : tone === 'crit' ? 'text-crit' : ''
   return (
-    <div className="card p-3 min-w-0">
+    <div className="min-w-0 py-1">
       <div className={`num text-2xl font-bold leading-none ${col}`}>{value}{unit && <span className="text-sm text-muted font-medium ml-0.5">{unit}</span>}</div>
       <div className="text-[11px] uppercase tracking-wider text-muted mt-1.5 font-semibold">{label}</div>
     </div>

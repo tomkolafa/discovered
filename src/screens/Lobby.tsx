@@ -1,11 +1,11 @@
-import { useEffect, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import { useNavigate, useParams } from 'react-router-dom'
 import QRCode from 'qrcode'
 import { Header } from '../components/ui'
 import { useSession, ago, freshness } from '../lib/useSession'
 import { supabase } from '../lib/supabase'
 import { getName, memberIdFor, setMemberIdFor, uuid } from '../lib/identity'
-import { MEMBER_COLOURS, VERTICAL_META } from '../lib/types'
+import { MEMBER_COLOURS } from '../lib/types'
 import { addSimTeammates } from '../lib/sim'
 
 export default function Lobby() {
@@ -30,7 +30,16 @@ export default function Lobby() {
     void supabase.from('members').insert({ id, session_id: d.session.id, name: getName(), role: 'field', colour: MEMBER_COLOURS[d.members.length % MEMBER_COLOURS.length] }).then(({ error }) => { if (!error) { setMemberIdFor(d.session!.id, id); void d.refresh() } else setErr(error.message) })
   }, [d.session, me, d.members.length]) // eslint-disable-line react-hooks/exhaustive-deps
 
-  useEffect(() => { if (myRow) { setOptin(myRow.recap_optin); setEmail(myRow.recap_email ?? import.meta.env.VITE_DEFAULT_RECAP_EMAIL ?? '') } }, [myRow?.id]) // eslint-disable-line react-hooks/exhaustive-deps
+  const hydrated = useRef(false)
+  useEffect(() => { if (myRow) { setOptin(myRow.recap_optin); setEmail(myRow.recap_email ?? import.meta.env.VITE_DEFAULT_RECAP_EMAIL ?? ''); hydrated.current = true } }, [myRow?.id]) // eslint-disable-line react-hooks/exhaustive-deps
+
+  // the recap preference saves itself: no Save button, and the checkbox persists too, which it
+  // never did before. The hydrated guard stops the first render writing '' over a stored email.
+  useEffect(() => {
+    if (!me || !hydrated.current) return
+    const id = setTimeout(() => { void supabase.from('members').update({ recap_optin: optin, recap_email: email.trim() || null }).eq('id', me) }, 500)
+    return () => clearTimeout(id)
+  }, [optin, email, me])
 
   if (d.error) return <div className="p-6"><Header title="Session" back="/" /><p className="text-crit mt-4">{d.error}</p></div>
   if (!d.session) return <div className="p-6 text-muted">Loading…</div>
@@ -39,11 +48,10 @@ export default function Lobby() {
 
   async function start() { setBusy('start'); await supabase.from('sessions').update({ status: 'live', started_at: new Date().toISOString() }).eq('id', s.id); setBusy(null); nav(`/s/${code}/field`) }
   async function sims() { setBusy('sim'); try { await addSimTeammates(s.id, s.boundary!, d.members.length); await d.refresh() } catch (e) { setErr((e as Error).message) } setBusy(null) }
-  async function saveRecap() { if (!me) return; await supabase.from('members').update({ recap_optin: optin, recap_email: email || null }).eq('id', me) }
 
   return (
     <div className="min-h-full flex flex-col">
-      <Header title={s.name} back="/" right={<span className="pill">{VERTICAL_META[s.vertical].label}</span>} />
+      <Header title={s.name} back="/" />
       <div className="p-4 flex flex-col gap-4 max-w-md w-full mx-auto safe-bottom">
         <div className="card p-4 flex gap-4 items-center">
           {qr && <img src={qr} alt="Join QR" className="w-28 h-28 rounded-lg bg-white" />}
@@ -66,11 +74,12 @@ export default function Lobby() {
               </li>
             ))}
           </ul>
+          {!d.members.some(m => m.is_simulated) && s.boundary && <button className="btn text-sm w-full mt-3" onClick={sims} disabled={busy === 'sim'}>{busy === 'sim' ? 'Adding…' : 'Add simulated teammates'}</button>}
         </div>
 
         <div className="card p-4 flex flex-col gap-2">
-          <label className="flex items-center gap-3"><input type="checkbox" checked={optin} onChange={e => setOptin(e.target.checked)} className="w-5 h-5 accent-[var(--accent)]" /><span className="text-sm">Send me a recap after the session (opt-in, non-critical)</span></label>
-          {optin && <div className="flex gap-2"><input className="input" placeholder="you@email.com" value={email} onChange={e => setEmail(e.target.value)} type="email" /><button className="btn" onClick={saveRecap}>Save</button></div>}
+          <label className="flex items-center gap-3"><input type="checkbox" checked={optin} onChange={e => setOptin(e.target.checked)} className="w-5 h-5 accent-[var(--accent)]" /><span className="text-sm">Send me a recap after the session ends</span></label>
+          {optin && <input className="input" placeholder="you@email.com" value={email} onChange={e => setEmail(e.target.value)} type="email" />}
         </div>
 
         {err && <div className="text-crit text-sm">{err}</div>}
@@ -78,10 +87,7 @@ export default function Lobby() {
         {s.status === 'planning' && !isCoord && <div className="pill justify-center py-2">Waiting for the coordinator to start</div>}
         {s.status === 'live' && <button className="btn btn-primary text-lg" onClick={() => nav(`/s/${code}/field`)}>Enter the field</button>}
         {s.status === 'ended' && <button className="btn btn-primary text-lg" onClick={() => nav(`/s/${code}/report`)}>Open the report</button>}
-        <div className="grid grid-cols-2 gap-2">
-          <button className="btn text-sm" onClick={() => nav(`/s/${code}/command`)}>Coordinator view</button>
-          {!d.members.some(m => m.is_simulated) && s.boundary && <button className="btn text-sm" onClick={sims} disabled={busy === 'sim'}>{busy === 'sim' ? 'Adding…' : 'Add simulated teammates'}</button>}
-        </div>
+        <button className="btn btn-quiet text-sm w-full" onClick={() => nav(`/s/${code}/command`)}>Coordinator view</button>
       </div>
     </div>
   )

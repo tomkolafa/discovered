@@ -4,6 +4,7 @@ import { useNavigate, useParams } from 'react-router-dom'
 import * as turf from '@turf/turf'
 import { MapView } from '../map/MapView'
 import { Sheet, ThemeToggle } from '../components/ui'
+import { ChevronLeftIcon } from '../components/icons'
 import { useSession, freshness } from '../lib/useSession'
 import { useTracking } from '../lib/tracking'
 import { useRecorder, extFor } from '../lib/recorder'
@@ -91,7 +92,7 @@ export default function Field() {
       {/* top HUD */}
       <div className="absolute top-0 inset-x-0 safe-top p-3 flex flex-col gap-2 pointer-events-none">
         <div className="flex items-center gap-2 pointer-events-auto">
-          <button className="pill" onClick={() => nav(`/s/${code}`)}>‹ {s.name}</button>
+          <button className="pill" onClick={() => nav(`/s/${code}`)}><ChevronLeftIcon size={14} /> {s.name}</button>
           <span className="flex-1" />
           <span className={`pill ${sync?.online ? '' : 'text-warn'}`}>{sync?.online ? (sync.syncing ? 'Syncing' : 'Online') : 'Offline'}{sync && sync.pending > 0 ? ` · ${sync.pending} queued` : ''}</span>
           <ThemeToggle />

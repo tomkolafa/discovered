@@ -9,6 +9,7 @@ import { supabase } from '../lib/supabase'
 import { memberIdFor } from '../lib/identity'
 import { startSimTicker } from '../lib/sim'
 import { MARKER_META } from '../lib/types'
+import { LegendLine, LegendFill, LegendDashed } from '../components/icons'
 
 export default function Command() {
   const { code } = useParams()
@@ -45,7 +46,7 @@ export default function Command() {
 
   return (
     <div className="min-h-full flex flex-col">
-      <Header title={<span>{s.name} <span className="pill ml-2">{s.status}</span></span>} back={`/s/${code}`} right={s.status === 'live' ? <button className="btn btn-danger text-sm h-9 min-h-0" onClick={async () => { await supabase.from('sessions').update({ status: 'ended', ended_at: new Date().toISOString() }).eq('id', s.id); nav(`/s/${code}/report`) }}>End session</button> : <button className="btn text-sm h-9 min-h-0" onClick={() => nav(`/s/${code}/report`)}>Report</button>} />
+      <Header title={<span>{s.name} <span className="pill ml-2">{s.status}</span></span>} back={`/s/${code}`} right={s.status === 'live' ? <button className="btn btn-danger text-sm h-9 min-h-0" onClick={async () => { await supabase.from('sessions').update({ status: 'ended', ended_at: new Date().toISOString() }).eq('id', s.id); nav(`/s/${code}/report`) }}>End session</button> : <button className="btn btn-primary text-sm h-9 min-h-0" onClick={() => nav(`/s/${code}/report`)}>Report</button>} />
       {(helps.length > 0 || stale.length > 0) && <div className="bg-crit text-white px-4 py-2 text-sm font-semibold">
         {helps.map(h => <div key={h.id}>✚ HELP NEEDED — {d.members.find(x => x.id === h.member_id)?.name} at {h.lat.toFixed(5)}, {h.lng.toFixed(5)} ({ago(h.t)}) <button className="underline ml-2" onClick={() => supabase.from('markers').update({ status: 'acknowledged' }).eq('id', h.id)}>acknowledge</button></div>)}
         {stale.map(m => <div key={m.id}>● {m.name} location stale ({ago(m.last_at)})</div>)}
@@ -60,21 +61,20 @@ export default function Command() {
             <div className="card p-2 text-xs w-56">
               <div className="flex justify-between"><span className="text-muted">Assumed sweep width</span><span className="num font-semibold">{sw} m</span></div>
               <input type="range" min={5} max={50} step={5} value={sw} onChange={e => setSweep(+e.target.value)} onPointerUp={() => supabase.from('sessions').update({ sweep_width_m: sw }).eq('id', s.id)} className="w-full accent-[var(--accent)]" />
-              <div className="text-muted mt-1">Corridor = track buffered by this width. A modelled estimate, not a searched area.</div>
             </div>
           </div>
           <div className="absolute bottom-3 left-3 flex gap-2 text-[11px]">
-            <span className="pill"><i className="w-3 h-0.5 bg-white inline-block" /> boundary</span><span className="pill"><i className="w-3 h-3 inline-block rounded-sm" style={{ background: 'var(--overlap)', opacity: .6 }} /> overlap</span><span className="pill"><i className="w-3 h-3 inline-block rounded-sm border border-dashed" style={{ borderColor: 'var(--gap)' }} /> not traversed</span>
+            <span className="pill"><LegendLine colour="#ffffff" /> boundary</span><span className="pill"><LegendFill colour="var(--overlap)" /> overlap</span><span className="pill"><LegendDashed colour="var(--gap)" /> not traversed</span>
           </div>
         </div>
-        <aside className="border-l border-line overflow-y-auto p-3 flex flex-col gap-3 bg-bg">
+        <aside className="border-l border-line overflow-y-auto p-4 flex flex-col gap-5 bg-bg">
           <div className="grid grid-cols-3 gap-2">
             <Stat value={cov ? Math.round(cov.coveredPct) : '–'} unit="%" label="Corridor" />
             <Stat value={cov ? Math.round(cov.overlapPct) : '–'} unit="%" label="Overlap" tone={cov && cov.overlapPct > 25 ? 'warn' : undefined} />
             <Stat value={cov ? Math.round(100 - cov.coveredPct) : '–'} unit="%" label="Gap" tone={cov && cov.coveredPct < 50 ? 'warn' : undefined} />
           </div>
-          <div className="card p-3">
-            <div className="font-semibold mb-2 text-sm">Roster</div>
+          <div>
+            <div className="font-semibold mb-2 text-sm pb-2 border-b border-line">Roster</div>
             <table className="w-full text-xs">
               <thead className="text-muted text-left"><tr><th>Member</th><th>Seen</th><th>Acc</th><th>Speed</th><th>Batt</th><th>Dist</th></tr></thead>
               <tbody>{d.members.map(m => { const f = freshness(m.last_at); const pm = cov?.perMember.find(x => x.member.id === m.id); return (
@@ -88,8 +88,8 @@ export default function Command() {
                 </tr>) })}</tbody>
             </table>
           </div>
-          <div className="card p-3">
-            <div className="font-semibold mb-2 text-sm">Timeline</div>
+          <div>
+            <div className="font-semibold mb-2 text-sm pb-2 border-b border-line">Timeline</div>
             <ul className="flex flex-col gap-2 text-xs">
               {timeline.length === 0 && <li className="text-muted">Nothing yet.</li>}
               {timeline.map((e, i) => <li key={i} className="flex gap-2"><span className="num text-muted w-11 shrink-0">{fmtTime(e.t)}</span><span className="w-1.5 rounded-full shrink-0" style={{ background: e.colour }} /><span className="min-w-0"><span className="font-semibold">{e.who}</span>{e.who ? ' · ' : ''}{e.text}</span></li>)}

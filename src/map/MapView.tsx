@@ -34,6 +34,14 @@ export function MapView({ layers, center, zoom = 15, fitTo, onClick, onReady, cl
     if (import.meta.env.DEV) (window as unknown as { __map: maplibregl.Map }).__map = m
     m.on('click', (e: maplibregl.MapMouseEvent) => clickRef.current?.([e.lngLat.lng, e.lngLat.lat]))
     m.on('error', e => console.error('[map]', e.error?.message ?? e))
+    // maplibre's compact attribution control is created EXPANDED (it sets both
+    // maplibregl-compact and maplibregl-compact-show plus the open attribute in _updateCompact)
+    // and only collapses once the user interacts with the map. Collapse it up front; the (i)
+    // button still opens it, so the OSM attribution stays one tap away.
+    const collapseAttrib = () => {
+      const a = m.getContainer().querySelector('.maplibregl-ctrl-attrib')
+      a?.classList.remove('maplibregl-compact-show'); a?.removeAttribute('open')
+    }
     const setup = () => {
       const src = (id: string, data: unknown) => { if (!m.getSource(id)) m.addSource(id, { type: 'geojson', data: data as FeatureCollection }) }
       src('boundary', empty); src('corridors', empty); src('overlap', empty); src('gap', empty); src('tracks', empty); src('markers', empty); src('members', empty); src('draft', empty)
@@ -55,9 +63,12 @@ export function MapView({ layers, center, zoom = 15, fitTo, onClick, onReady, cl
       m.addLayer({ id: 'members-label', type: 'symbol', source: 'members', layout: { 'text-field': ['get', 'name'], 'text-size': 12, 'text-offset': [0, 1.6], 'text-font': ['Noto Sans Bold'], 'text-anchor': 'top', 'text-allow-overlap': true }, paint: { 'text-color': '#fff', 'text-halo-color': '#0B0F14', 'text-halo-width': 1.5 } })
       ready.current = true
       apply(m, layersRef.current)
+      collapseAttrib()
       onReady?.(m)
     }
     m.on('load', setup)
+    // _updateCompact runs again on resize, so re-collapse after maplibre has had its turn
+    m.on('resize', () => requestAnimationFrame(collapseAttrib))
     // re-add layers after a style swap (theme toggle)
     m.on('style.load', () => { if (ready.current) { ready.current = false; setup() } })
     return () => { m.remove(); map.current = null }

@@ -3,16 +3,14 @@ import { useNavigate } from 'react-router-dom'
 import { Header } from '../components/ui'
 import { MapView } from '../map/MapView'
 import { supabase } from '../lib/supabase'
-import { getName, makeCode, setMemberIdFor, uuid, deviceId } from '../lib/identity'
+import { getName, makeCode, setMemberIdFor, uuid, deviceId, getSessionName, getVertical } from '../lib/identity'
 import { getPosition } from '../lib/tracking'
 import { circlePolygon } from '../lib/geo'
-import { MEMBER_COLOURS, VERTICAL_META, type Vertical } from '../lib/types'
+import { MEMBER_COLOURS, VERTICAL_META } from '../lib/types'
 import * as turf from '@turf/turf'
 
 export default function Create() {
   const nav = useNavigate()
-  const [name, setName] = useState('')
-  const [vertical, setVertical] = useState<Vertical>('sar')
   const [mode, setMode] = useState<'radius' | 'draw'>('radius')
   const [radius, setRadius] = useState(400)
   const [center, setCenter] = useState<[number, number] | null>(null)
@@ -21,6 +19,9 @@ export default function Create() {
   const [err, setErr] = useState<string | null>(null)
 
   useEffect(() => { void getPosition().then(p => setCenter(p ?? [-75.69, 45.42])) }, [])
+  // chosen on the home screen; read once so a mid-flow storage change cannot swap them
+  const [name] = useState(getSessionName)
+  const [vertical] = useState(getVertical)
 
   const boundary = useMemo<GeoJSON.Polygon | null>(() => {
     if (mode === 'radius') return center ? circlePolygon(center, radius) : null
@@ -49,7 +50,7 @@ export default function Create() {
 
   return (
     <div className="h-full flex flex-col">
-      <Header title="New session" back="/" />
+      <Header title={name.trim() || 'New session'} back="/" />
       <div className="relative flex-1 min-h-[42vh]">
         {center && <MapView layers={layers} center={center} zoom={14} fitTo={mode === 'radius' ? fit : null} onClick={p => { if (mode === 'draw') setVerts(v => [...v, p]) }} />}
         {!center && <div className="absolute inset-0 grid place-items-center text-muted">Getting your position…</div>}
@@ -68,10 +69,6 @@ export default function Create() {
           <input type="range" min={100} max={2000} step={50} value={radius} onChange={e => setRadius(+e.target.value)} className="w-full accent-[var(--accent)]" />
         </label>}
         <div className="flex gap-2 text-sm"><span className="pill">Area {areaHa.toFixed(1)} ha</span><span className="pill">{(areaHa / 100).toFixed(2)} km²</span></div>
-        <div className="grid grid-cols-3 gap-2">
-          {(Object.keys(VERTICAL_META) as Vertical[]).map(v => <button key={v} className={`btn text-sm ${vertical === v ? 'btn-primary' : ''}`} onClick={() => setVertical(v)}>{VERTICAL_META[v].label}</button>)}
-        </div>
-        <input className="input" placeholder="Session name (optional)" value={name} onChange={e => setName(e.target.value)} />
         {err && <div className="text-crit text-sm">{err}</div>}
         <button className="btn btn-primary text-lg" disabled={!boundary || busy} onClick={create}>{busy ? 'Creating…' : 'Create session'}</button>
       </div>

@@ -24,7 +24,7 @@
 .landing-nav-actions { display: flex; align-items: center; gap: 28px; font-size: 12px; }
 .landing-nav-link, .landing-theme { color: var(--landing-muted); transition: color .2s ease; }
 .landing-nav-link:hover, .landing-theme:hover, .text-link:hover { color: var(--landing-accent); }
-.landing-theme { padding: 0; border: 0; background: transparent; cursor: pointer; }
+.landing-theme { display: inline-flex; align-items: center; justify-content: center; width: 34px; height: 34px; padding: 0; border: 0; border-radius: 10px; background: transparent; cursor: pointer; }
 .landing-button { display: inline-flex; align-items: center; justify-content: center; min-height: 52px; padding: 0 26px; border: 1px solid var(--landing-accent); border-radius: 4px; background: var(--landing-accent); color: var(--landing-accent-ink) !important; font-size: 12px; font-weight: 800; letter-spacing: .04em; transition: transform .18s ease, background .18s ease; }
 .landing-button:hover { transform: translateY(-2px); background: #58e5d2; }
 .landing-button:active { transform: scale(.98); }

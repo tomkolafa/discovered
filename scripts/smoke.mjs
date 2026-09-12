@@ -70,7 +70,7 @@ await sleep(1500); await shot('08-report-scrub')
 // desktop command + light theme
 await page.setViewport({ width: 1280, height: 800 })
 await page.goto(`${BASE}/s/${code}/command`, { waitUntil: 'networkidle2' }); await sleep(3000)
-await page.evaluate(() => [...document.querySelectorAll('button')].find(b => b.getAttribute('aria-label') === 'Toggle theme').click()); await sleep(2500); await shot('09-command-desktop-light')
+await page.evaluate(() => [...document.querySelectorAll('button')].find(b => b.getAttribute('aria-label')?.startsWith('Switch to')).click()); await sleep(2500); await shot('09-command-desktop-light')
 console.log('console errors:', logs.filter(l => !/favicon|manifest|404/.test(l)).slice(0, 8))
 console.log('REPORT_URL', `${BASE}/s/${code}/report`)
 await browser.close()

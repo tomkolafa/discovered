@@ -1,6 +1,7 @@
 import { useEffect, useState, type CSSProperties } from 'react'
 import { applyTheme, getTheme } from '../lib/identity'
 import { FRAME, boundary, corridors, markers, teams } from './hero-map'
+import { SunIcon, MoonIcon } from '../components/icons'
 
 const benefits = [
   { title: 'One map for the whole team', copy: 'See each person’s live position and route in one shared view, even when the signal drops.' },
@@ -24,7 +25,8 @@ function ThemeButton() {
     window.addEventListener('fl-theme', sync)
     return () => window.removeEventListener('fl-theme', sync)
   }, [])
-  return <button className="landing-theme" type="button" onClick={() => { const next = theme === 'dark' ? 'light' : 'dark'; applyTheme(next); setTheme(next); window.dispatchEvent(new Event('fl-theme')) }} aria-label="Toggle colour theme">{theme === 'dark' ? 'Light mode' : 'Dark mode'}</button>
+  const next = theme === 'dark' ? 'light' : 'dark'
+  return <button className="landing-theme" type="button" onClick={() => { applyTheme(next); setTheme(next); window.dispatchEvent(new Event('fl-theme')) }} aria-label={`Switch to ${next} mode`} title={`Switch to ${next} mode`}>{theme === 'dark' ? <SunIcon size={19} /> : <MoonIcon size={19} />}</button>
 }
 
 function Brand() {
