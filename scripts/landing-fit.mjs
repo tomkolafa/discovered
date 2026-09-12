@@ -1,6 +1,6 @@
 // Landing-page text-fit check.
 //
-// .landing-shell sets overflow:hidden, so a heading that is too wide for its column is
+// .landing-shell clips overflow (overflow-x: clip), so a heading that is too wide for its column is
 // silently clipped: no horizontal scrollbar, and scrollWidth === clientWidth. That is how
 // a hero reading "DISCOVER" instead of "DISCOVERED" shipped. This measures the rendered
 // text of every heading against its box and fails when any of it is being eaten.

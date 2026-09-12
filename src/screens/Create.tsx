@@ -1,12 +1,12 @@
 import { useEffect, useMemo, useState } from 'react'
-import { useNavigate } from 'react-router-dom'
+import { Navigate, useNavigate } from 'react-router-dom'
 import { Header } from '../components/ui'
 import { MapView } from '../map/MapView'
 import { supabase } from '../lib/supabase'
 import { getName, makeCode, setMemberIdFor, uuid, deviceId, getSessionName, getVertical } from '../lib/identity'
 import { getPosition } from '../lib/tracking'
 import { circlePolygon } from '../lib/geo'
-import { MEMBER_COLOURS, VERTICAL_META } from '../lib/types'
+import { MEMBER_COLOURS } from '../lib/types'
 import * as turf from '@turf/turf'
 
 export default function Create() {
@@ -39,7 +39,7 @@ export default function Create() {
     try {
       const code = makeCode()
       const memberId = uuid()
-      const { data: s, error } = await supabase.from('sessions').insert({ code, name: name.trim() || `${VERTICAL_META[vertical].label} ${new Date().toLocaleDateString()}`, vertical, boundary, created_by: deviceId() }).select().single()
+      const { data: s, error } = await supabase.from('sessions').insert({ code, name: name.trim(), vertical, boundary, created_by: deviceId() }).select().single()
       if (error) throw error
       const { error: e2 } = await supabase.from('members').insert({ id: memberId, session_id: s.id, name: getName(), role: 'coordinator', colour: MEMBER_COLOURS[0] })
       if (e2) throw e2
@@ -48,9 +48,13 @@ export default function Create() {
     } catch (e) { setErr((e as Error).message) } finally { setBusy(false) }
   }
 
+  // the session name is required on the home screen; arriving here without one (a direct link,
+  // cleared storage) goes back there instead of creating an unnamed session
+  if (!name.trim()) return <Navigate to="/" replace />
+
   return (
     <div className="h-full flex flex-col">
-      <Header title={name.trim() || 'New session'} back="/" />
+      <Header title={name.trim()} back="/" />
       <div className="relative flex-1 min-h-[42vh]">
         {center && <MapView layers={layers} center={center} zoom={14} fitTo={mode === 'radius' ? fit : null} onClick={p => { if (mode === 'draw') setVerts(v => [...v, p]) }} />}
         {!center && <div className="absolute inset-0 grid place-items-center text-muted">Getting your position…</div>}

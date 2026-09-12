@@ -41,7 +41,7 @@ export default function Home() {
             {(Object.keys(VERTICAL_META) as Vertical[]).map(v => <option key={v} value={v}>{VERTICAL_META[v].label}</option>)}
           </select>
         </label>
-        <button className="btn btn-primary text-lg" disabled={!name.trim()} onClick={() => nav('/new')}>Continue</button>
+        <button className="btn btn-primary text-lg" disabled={!name.trim() || !session.trim()} onClick={() => nav('/new')}>Continue</button>
         <div className="card p-4 flex flex-col gap-3">
           <div className="font-semibold">Join with a code</div>
           <div className="flex gap-2">

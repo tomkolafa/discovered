@@ -16,6 +16,7 @@ const shot = n => page.screenshot({ path: `/private/tmp/claude-501/-Users-tomas-
 
 await page.goto(BASE, { waitUntil: 'networkidle2' })
 await page.type('input[placeholder="e.g. Tomas"]', 'Smoke Tester')
+await page.type('input[placeholder="e.g. Ridge sweep, Saturday"]', 'Smoke run')
 await shot('01-home')
 await page.click('button.btn-primary')
 await page.waitForSelector('input[type=range]', { timeout: 20000 })
