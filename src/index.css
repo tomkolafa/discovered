@@ -1,0 +1,45 @@
+@import "tailwindcss";
+@import "maplibre-gl/dist/maplibre-gl.css";
+
+@custom-variant dark (&:where([data-theme=dark], [data-theme=dark] *));
+
+:root {
+  --bg: #F4F6F8; --surface: #FFFFFF; --surface-2: #EAEEF2; --line: #D9DFE6;
+  --text: #0E141B; --muted: #5B6875; --accent: #0FA894; --accent-ink: #063F38;
+  --good: #16A34A; --warn: #D97706; --crit: #DC2626; --overlap: #7C3AED; --gap: #DC2626;
+  color-scheme: light;
+}
+[data-theme=dark] {
+  --bg: #0B0F14; --surface: #131A22; --surface-2: #1B2430; --line: #26313D;
+  --text: #E8EDF2; --muted: #8A97A6; --accent: #2DD4BF; --accent-ink: #052E2A;
+  --good: #34D399; --warn: #F59E0B; --crit: #EF4444; --overlap: #A78BFA; --gap: #F87171;
+  color-scheme: dark;
+}
+
+@theme inline {
+  --color-bg: var(--bg); --color-surface: var(--surface); --color-surface-2: var(--surface-2);
+  --color-line: var(--line); --color-text: var(--text); --color-muted: var(--muted);
+  --color-accent: var(--accent); --color-accent-ink: var(--accent-ink);
+  --color-good: var(--good); --color-warn: var(--warn); --color-crit: var(--crit);
+  --color-overlap: var(--overlap); --color-gap: var(--gap);
+  --font-sans: "Inter", ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+  --font-mono: ui-monospace, "SF Mono", Menlo, monospace;
+}
+
+html, body, #root { height: 100%; }
+body { margin: 0; background: var(--bg); color: var(--text); font-family: var(--font-sans); -webkit-font-smoothing: antialiased; overscroll-behavior: none; }
+button, input, select, textarea { font: inherit; color: inherit; }
+.num { font-variant-numeric: tabular-nums; letter-spacing: -0.02em; }
+.card { background: var(--surface); border: 1px solid var(--line); border-radius: 18px; }
+.btn { display: inline-flex; align-items: center; justify-content: center; gap: .5rem; min-height: 48px; padding: 0 1.1rem; border-radius: 14px; font-weight: 600; border: 1px solid var(--line); background: var(--surface-2); transition: transform .08s ease; }
+.btn:active { transform: scale(.98); }
+.btn-primary { background: var(--accent); color: var(--accent-ink); border-color: transparent; }
+.btn-danger { background: var(--crit); color: #fff; border-color: transparent; }
+.input { width: 100%; min-height: 48px; padding: 0 .9rem; border-radius: 14px; border: 1px solid var(--line); background: var(--surface); }
+.pill { display: inline-flex; align-items: center; gap: .35rem; padding: .2rem .6rem; border-radius: 999px; font-size: 12px; font-weight: 600; border: 1px solid var(--line); background: var(--surface-2); }
+.safe-top { padding-top: env(safe-area-inset-top); }
+.safe-bottom { padding-bottom: env(safe-area-inset-bottom); }
+.maplibregl-ctrl-attrib { font-size: 10px; opacity: .7; }
+@keyframes pulse { 0%{transform:scale(1);opacity:.7} 100%{transform:scale(2.2);opacity:0} }
+.pulse::after { content:''; position:absolute; inset:0; border-radius:999px; border:2px solid currentColor; animation: pulse 1.6s ease-out infinite; }
+.pill.on { background: var(--accent); color: var(--accent-ink); border-color: transparent; }
