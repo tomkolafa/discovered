@@ -17,7 +17,7 @@ export default function Lobby() {
   const [err, setErr] = useState<string | null>(null)
   const [optin, setOptin] = useState(false)
   const [email, setEmail] = useState(import.meta.env.VITE_DEFAULT_RECAP_EMAIL ?? '')
-  const url = `${location.origin}/s/${code}`
+  const url = `${location.origin}/discover/s/${code}`
   const me = d.session ? memberIdFor(d.session.id) : null
   const myRow = d.members.find(m => m.id === me)
 

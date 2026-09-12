@@ -13,7 +13,7 @@ import { startSync } from './lib/db'
 export default function App() {
   useEffect(() => { applyTheme(getTheme()); startSync() }, [])
   return (
-    <BrowserRouter>
+    <BrowserRouter basename="/discover">
       <Routes>
         <Route path="/" element={<Home />} />
         <Route path="/new" element={<Create />} />

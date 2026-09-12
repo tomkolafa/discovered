@@ -2,9 +2,27 @@ import { defineConfig } from 'vite'
 import react from '@vitejs/plugin-react'
 import tailwindcss from '@tailwindcss/vite'
 import { VitePWA } from 'vite-plugin-pwa'
+import { resolve } from 'node:path'
+
+function discoverEntry() {
+  const rewrite = (req: { url?: string }, _res: unknown, next: () => void) => {
+    if (req.url === '/discover') req.url = '/discover/index.html'
+    next()
+  }
+  return {
+    name: 'discover-entry',
+    configureServer(server: { middlewares: { use: (handler: typeof rewrite) => void } }) {
+      server.middlewares.use(rewrite)
+    },
+    configurePreviewServer(server: { middlewares: { use: (handler: typeof rewrite) => void } }) {
+      server.middlewares.use(rewrite)
+    },
+  }
+}
 
 export default defineConfig({
   plugins: [
+    discoverEntry(),
     react(),
     tailwindcss(),
     VitePWA({
@@ -18,15 +36,16 @@ export default defineConfig({
         background_color: '#0B0F14',
         display: 'standalone',
         orientation: 'portrait',
-        start_url: '/',
+        start_url: '/discover',
+        scope: '/discover',
         icons: [
           { src: '/icon-192.png', sizes: '192x192', type: 'image/png' },
           { src: '/icon-512.png', sizes: '512x512', type: 'image/png', purpose: 'any maskable' },
         ],
       },
       workbox: {
-        navigateFallback: '/index.html',
-        navigateFallbackDenylist: [/^\/api\//],
+        navigateFallback: '/discover/index.html',
+        navigateFallbackDenylist: [/^\/api\//, /^\/$/],
         maximumFileSizeToCacheInBytes: 6 * 1024 * 1024,
         runtimeCaching: [
           {
@@ -47,5 +66,13 @@ export default defineConfig({
       },
     }),
   ],
+  build: {
+    rollupOptions: {
+      input: {
+        main: resolve(__dirname, 'index.html'),
+        app: resolve(__dirname, 'discover/index.html'),
+      },
+    },
+  },
   server: { host: true, port: 5173 },
 })

@@ -70,7 +70,7 @@ export default function Report() {
   if (d.error) return <div className="p-6 text-crit">{d.error}</div>
   if (!s || !cov) return <div className="p-6 text-muted">Loading…</div>
   const me = memberIdFor(s.id); const mine = d.members.find(m => m.id === me)
-  const reportUrl = `${location.origin}/s/${code}/report`
+  const reportUrl = `${location.origin}/discover/s/${code}/report`
   const recapText = summary ?? fallback(stats!)
   async function sendEmail() { if (!mine?.recap_email) { setSent('Add an email in the lobby first'); return } const r = await fetch('/api/recap', { method: 'POST', headers: { 'content-type': 'application/json' }, body: JSON.stringify({ sessionId: s!.id, memberId: me, to: mine.recap_email, subject: `Recap: ${s!.name}`, text: recapText, reportUrl }) }).then(r => r.json()); setSent(r.status === 'sent' ? `Email sent to ${mine.recap_email}` : `Email ${r.status}: ${JSON.stringify(r.detail)}`) }
   async function waClick() { await supabase.from('deliveries').insert({ session_id: s!.id, member_id: me, channel: 'whatsapp_click', status: 'opened', payload: { reportUrl } }); window.open(`https://wa.me/?text=${encodeURIComponent(`${s!.name} recap\n\n${recapText}\n\nFull report: ${reportUrl}`)}`, '_blank') }

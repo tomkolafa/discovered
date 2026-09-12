@@ -1,3 +1,7 @@
 {
-  "rewrites": [{ "source": "/((?!api/).*)", "destination": "/index.html" }]
+  "rewrites": [
+    { "source": "/discover", "destination": "/discover/index.html" },
+    { "source": "/discover/:path*", "destination": "/discover/index.html" },
+    { "source": "/((?!api/|discover).*)", "destination": "/index.html" }
+  ]
 }
