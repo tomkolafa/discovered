@@ -1,5 +1,5 @@
 import puppeteer from 'puppeteer-core'
-const BASE = process.argv[2] || 'http://localhost:5173'
+const BASE = process.argv[2] || 'http://localhost:4173'
 const exe = '/Users/tomas/.cache/puppeteer/chrome/mac_arm-146.0.7680.76/chrome-mac-arm64/Google Chrome for Testing.app/Contents/MacOS/Google Chrome for Testing'
 const browser = await puppeteer.launch({ executablePath: exe, headless: process.env.HEADED ? false : 'new', args: process.env.NOGL ? [] : ['--use-gl=angle', '--use-angle=swiftshader', '--enable-unsafe-swiftshader', '--ignore-gpu-blocklist'] })
 const page = await browser.newPage()
