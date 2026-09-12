@@ -1,13 +1,6 @@
 import { useEffect, useState, type CSSProperties } from 'react'
 import { applyTheme, getTheme } from '../lib/identity'
-
-type Track = { colour: string; path: string; label: string; x: number; y: number }
-
-const tracks: Track[] = [
-  { colour: '#2DD4BF', path: 'M72 316 C108 280 116 244 142 222 S198 172 224 146 S276 128 310 92', label: 'Maya', x: 310, y: 92 },
-  { colour: '#79A7FF', path: 'M102 338 C152 318 152 278 182 254 S224 214 252 204 S316 172 344 148', label: 'Riley', x: 344, y: 148 },
-  { colour: '#F2C879', path: 'M178 346 C190 316 218 298 244 278 S288 244 306 214 S350 190 388 178', label: 'Ari', x: 388, y: 178 },
-]
+import { FRAME, boundary, corridors, markers, teams } from './hero-map'
 
 const benefits = [
   { title: 'One map for the whole team', copy: 'See each person’s live position and route in one shared view, even when the signal drops.' },
@@ -44,27 +37,40 @@ function MissionMap() {
     <div className={`mission-window ${live ? 'is-live' : 'is-paused'}`}>
       <div className="mission-bar">
         <div className="mission-dots" aria-hidden="true"><span /><span /><span /></div>
-        <span className="mission-address">discovered / live-session / north-sector</span>
+        <span className="mission-address">discovered / live-session / yosemite-valley</span>
         <span className="mission-live"><i /> {live ? 'LIVE' : 'PAUSED'}</span>
       </div>
       <div className="mission-body">
-        <div className="mission-map" role="img" aria-label="Animated map showing three team routes and a traversed corridor">
-          <div className="map-grid" aria-hidden="true" />
-          <div className="map-contours contour-one" aria-hidden="true" />
-          <div className="map-contours contour-two" aria-hidden="true" />
-          <svg viewBox="0 0 460 390" preserveAspectRatio="none" aria-hidden="true">
-            <path className="boundary-line" d="M48 56 L386 42 L430 292 L116 354 L48 56Z" />
-            {tracks.map(track => <path key={track.label} className="route-shadow" d={track.path} stroke={track.colour} />)}
-            {tracks.map(track => <path key={`${track.label}-route`} className="route-line" d={track.path} stroke={track.colour} />)}
-            <path className="route-scan" d="M88 338 C146 294 172 248 216 220 S302 162 370 112" />
+        <div className="mission-map" role="img" aria-label="A dark map of Yosemite Valley showing three simulated team routes, their traversed corridors, logged markers, and an assigned sector boundary">
+          {/* object-fit:cover here and preserveAspectRatio="xMidYMid slice" on the svg are the same
+              crop, so the tracks stay locked to the terrain at every viewport width */}
+          <img
+            className="map-base" alt="" aria-hidden="true" width={FRAME.w} height={FRAME.h}
+            src="/hero-yosemite-1600.webp"
+            srcSet="/hero-yosemite-1600.webp 1600w, /hero-yosemite-3200.webp 3200w"
+            sizes="(max-width: 900px) 100vw, 1400px"
+          />
+          <svg viewBox={`0 0 ${FRAME.w} ${FRAME.h}`} preserveAspectRatio="xMidYMid slice" aria-hidden="true">
+            {corridors.map((d, i) => <path key={`corridor-${teams[i].label}`} className="route-corridor" d={d} fill={teams[i].colour} />)}
+            <path className="boundary-line" d={boundary} />
+            {markers.map(([x, y]) => <circle key={`marker-${x}-${y}`} className="map-marker" cx={x} cy={y} r={7} />)}
+            {teams.map(team => <path key={`${team.label}-shadow`} className="route-shadow" d={team.d} stroke={team.colour} />)}
+            {/* pathLength normalises every track to 1 unit, so one dash animation fits all three */}
+            {teams.map((team, i) => <path key={`${team.label}-route`} className="route-line" d={team.d} stroke={team.colour} pathLength={1} style={{ '--i': i } as CSSProperties} />)}
+            {teams.map(team => (
+              <g key={`${team.label}-member`} className="map-member" style={{ '--member-colour': team.colour } as CSSProperties}>
+                <circle className="member-pulse" cx={team.at[0]} cy={team.at[1]} r={9} />
+                <circle className="member-dot" cx={team.at[0]} cy={team.at[1]} r={7} />
+                <text x={team.at[0]} y={team.at[1]}>{team.label}</text>
+              </g>
+            ))}
           </svg>
-          {tracks.map(track => <span key={track.label} className="map-member" style={{ '--member-colour': track.colour, left: `${(track.x / 460) * 100}%`, top: `${(track.y / 390) * 100}%` } as CSSProperties}><i /><b>{track.label}</b></span>)}
-          <span className="map-label label-north">NORTH SECTOR</span>
           <span className="map-label label-boundary">ASSIGNED BOUNDARY</span>
+          <span className="map-credit">Map © OpenStreetMap contributors · Terrain: Mapzen / AWS Open Data</span>
           <button className="map-control" type="button" onClick={() => setLive(value => !value)} aria-label={live ? 'Pause map animation' : 'Play map animation'}>{live ? 'Pause movement' : 'Play movement'}</button>
         </div>
         <aside className="mission-rail">
-          <div className="rail-heading"><span>Session map</span><strong>North sector</strong></div>
+          <div className="rail-heading"><span>Session map</span><strong>Yosemite Valley</strong></div>
           <div className="rail-stat"><span>Team members</span><strong className="num">03</strong></div>
           <div className="rail-stat"><span>Markers logged</span><strong className="num">12</strong></div>
           <div className="rail-stat"><span>Voice notes</span><strong className="num">04</strong></div>
@@ -82,24 +88,23 @@ function Landing() {
     <main className="landing-shell">
       <nav className="landing-nav" aria-label="Main navigation">
         <Brand />
-        <div className="landing-nav-actions"><a className="landing-nav-link" href="#how-it-works">How it works</a><a className="landing-nav-link" href="#use-cases">Who it’s for</a><ThemeButton /><a className="landing-button landing-button-small" href="/discover">Start a session <span aria-hidden="true">↗</span></a></div>
+        <div className="landing-nav-actions"><a className="landing-nav-link" href="#how-it-works">How it works</a><a className="landing-nav-link" href="#use-cases">Who it’s for</a><ThemeButton /><a className="landing-button landing-button-small" href="/discover">Start a session</a></div>
       </nav>
 
       <section className="landing-hero">
         <div className="hero-copy">
-          <p className="hero-kicker"><span className="kicker-line" /> FIELD RECORD / 01</p>
           <h1>DISCOVERED</h1>
-          <p className="hero-title">See every step.<br />Spot every gap.</p>
+          <p className="hero-title">Search-and-rescue intelligently</p>
           <p className="hero-support">A live movement record for teams who work together across terrain.</p>
-          <div className="hero-actions"><a className="landing-button" href="/discover">Start a session <span aria-hidden="true">↗</span></a><a className="text-link" href="#how-it-works">See how it works <span aria-hidden="true">↓</span></a></div>
+          <div className="hero-actions"><a className="landing-button" href="/discover">Start a session</a><a className="text-link" href="#how-it-works">See how it works</a></div>
         </div>
-        <div className="hero-visual"><MissionMap /></div>
       </section>
+
+      <div className="hero-visual"><MissionMap /></div>
 
       <section className="field-note" id="how-it-works">
         <div className="section-marker">THE FIELD RECORD</div>
-        <div className="field-note-copy"><h2>Movement, made legible.</h2><p>Discovered turns phone GPS tracks, field markers, and voice notes into one shared record. It shows where people walked, where routes overlap, and where another look may be useful.</p><p className="safety-note"><span aria-hidden="true">+</span> A traversed corridor assumes each person observes 20 metres either side of their track. It is a movement model, not a claim about what anyone saw.</p></div>
-        <div className="field-note-stats"><div><strong className="num">01</strong><span>shared map</span></div><div><strong className="num">00</strong><span>signal required</span></div><div><strong className="num">∞</strong><span>notes in context</span></div></div>
+        <div className="field-note-copy"><h2>Movement, made legible.</h2><p>Discovered turns phone GPS tracks, field markers, and voice notes into one shared record. It shows where people walked, where routes overlap, and where another look may be useful.</p><p className="safety-note"><span aria-hidden="true">+</span> A traversed corridor assumes each person observes 20 metres either side of their track.</p></div>
       </section>
 
       <section className="benefits-section">
@@ -117,7 +122,7 @@ function Landing() {
         <p className="section-marker">THE NEXT FIELD RECORD</p>
         <h2>DISCOVERED.</h2>
         <p>We’re looking for teams who want a clearer record of their work across terrain.</p>
-        <div className="cta-actions"><a className="landing-button" href="/discover">Start a session <span aria-hidden="true">↗</span></a><a className="text-link" href="mailto:discoveredcanada@gmail.com">Get in touch <span aria-hidden="true">↗</span></a></div>
+        <div className="cta-actions"><a className="landing-button" href="/discover">Start a session</a><a className="text-link" href="mailto:discoveredcanada@gmail.com">Get in touch</a></div>
       </section>
 
       <footer className="landing-footer"><Brand /><span>Movement records for teams in the field.</span><a href="mailto:discoveredcanada@gmail.com">discoveredcanada@gmail.com</a></footer>
