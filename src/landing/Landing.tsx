@@ -76,7 +76,8 @@ function MissionMap() {
 }
 
 function Landing() {
-  useEffect(() => { applyTheme(getTheme()) }, [])
+  // theme is set before first paint by the inline script in index.html; applying it again here
+  // would persist fl.theme on a visit where the reader never chose one
   return (
     <main className="landing-shell">
       <nav className="landing-nav" aria-label="Main navigation">

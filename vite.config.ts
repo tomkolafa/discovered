@@ -5,8 +5,11 @@ import { VitePWA } from 'vite-plugin-pwa'
 import { resolve } from 'node:path'
 
 function discoverEntry() {
+  // match what vercel.json does in production: every /discover route serves the app document
   const rewrite = (req: { url?: string }, _res: unknown, next: () => void) => {
-    if (req.url === '/discover') req.url = '/discover/index.html'
+    const path = (req.url ?? '').split('?')[0]
+    if (path === '/discover' || (path.startsWith('/discover/') && !/\.[a-z0-9]+$/i.test(path)))
+      req.url = '/discover/index.html'
     next()
   }
   return {

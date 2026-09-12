@@ -1,5 +1,5 @@
 import puppeteer from 'puppeteer-core'
-const BASE = process.argv[2] || 'http://localhost:5173'
+const BASE = process.argv[2] || 'http://localhost:5173/discover'
 const exe = '/Users/tomas/.cache/puppeteer/chrome/mac_arm-146.0.7680.76/chrome-mac-arm64/Google Chrome for Testing.app/Contents/MacOS/Google Chrome for Testing'
 const browser = await puppeteer.launch({ executablePath: exe, headless: true, args: ['--use-fake-ui-for-media-stream', '--use-fake-device-for-media-stream'] })
 const ctx = browser.defaultBrowserContext()
